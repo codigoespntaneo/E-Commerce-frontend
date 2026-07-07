@@ -91,7 +91,14 @@
             </div>
             <div class="admin__group">
               <label for="admin-image" class="admin__label">Imagen (emoji)</label>
-              <input type="text" id="admin-image" class="admin__input" placeholder="🍣" maxlength="2" required />
+              <div class="emoji-picker">
+                <div class="emoji-picker__preview">
+                  <span class="emoji-picker__current" id="emoji-picker-current">🍣</span>
+                  <input type="text" id="admin-image" class="admin__input emoji-picker__input" placeholder="🍣" maxlength="2" required />
+                </div>
+                <p class="emoji-picker__hint">Elegí un emoji o escribí uno. Hacé clic para seleccionar.</p>
+                <div class="emoji-picker__grid" id="emoji-picker-grid"><!-- se llena por JS --></div>
+              </div>
             </div>
             <div class="admin__actions">
               <button type="submit" class="btn btn--primary" id="admin-submit">Añadir Menú</button>
