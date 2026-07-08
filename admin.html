@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FujiFood — Cocina Asiática</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="navbar__inner container">
+      <a href="index.html" class="navbar__logo">FujiFood</a>
+      <nav class="navbar__links">
+        <a href="#admin">Admin</a>
+        <a href="#api">API</a>
+      </nav>
+      <button class="navbar__toggle" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+<!-- ADMIN -->
+    <section id="admin" class="admin section container">
+      <div class="section__header">
+        <span class="label-caps">Administración</span>
+        <h2 class="headline-md">Gestionar Menús</h2>
+      </div>
+
+      <div class="admin__layout">
+        <div class="admin__form-wrapper">
+          <h3 class="admin__form-title" id="form-title">Añadir Menú</h3>
+          <form class="admin__form" id="admin-form">
+            <div class="admin__group">
+              <label for="admin-name" class="admin__label">Nombre</label>
+              <input type="text" id="admin-name" class="admin__input" placeholder="Ej: Sushi Set Premium" required />
+            </div>
+            <div class="admin__group">
+              <label for="admin-desc" class="admin__label">Descripción</label>
+              <textarea id="admin-desc" class="admin__textarea" rows="2" placeholder="Descripción del plato..." required></textarea>
+            </div>
+            <div class="admin__row">
+              <div class="admin__group">
+                <label for="admin-price" class="admin__label">Precio ($)</label>
+                <input type="number" id="admin-price" class="admin__input" step="0.01" min="0" placeholder="28.50" required />
+              </div>
+              <div class="admin__group">
+                <label for="admin-stock" class="admin__label">Stock</label>
+                <input type="number" id="admin-stock" class="admin__input" min="0" placeholder="15" required />
+              </div>
+            </div>
+            <div class="admin__group">
+              <label for="admin-category" class="admin__label">Categoría</label>
+              <select id="admin-category" class="admin__input" required>
+                <option value="" disabled selected>Seleccionar categoría</option>
+              </select>
+            </div>
+            <div class="admin__group">
+              <label for="admin-image" class="admin__label">Imagen (emoji)</label>
+              <div class="emoji-picker">
+                <div class="emoji-picker__preview">
+                  <span class="emoji-picker__current" id="emoji-picker-current">🍣</span>
+                  <input type="text" id="admin-image" class="admin__input emoji-picker__input" placeholder="🍣" maxlength="2" required />
+                </div>
+                <p class="emoji-picker__hint">Elegí un emoji o escribí uno. Hacé clic para seleccionar.</p>
+                <div class="emoji-picker__grid" id="emoji-picker-grid"><!-- se llena por JS --></div>
+              </div>
+            </div>
+            <div class="admin__actions">
+              <button type="submit" class="btn btn--primary" id="admin-submit">Añadir Menú</button>
+              <button type="button" class="btn btn--secondary" id="admin-cancel" style="display:none">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="admin__table-wrapper">
+          <table class="admin__table">
+            <thead>
+              <tr>
+                <th>Img</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table-body"></tbody>
+          </table>
+          <p class="admin__empty" id="admin-empty">No hay menús registrados.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- API DOCUMENTATION -->
+    <section id="api" class="section container">
+      <div class="section__header">
+        <span class="label-caps">Desarrolladores</span>
+        <h2 class="headline-md">API REST — FujiFood</h2>
+        <p class="body-md api__intro">
+          Endpoints disponibles para operaciones CRUD sobre el catálogo de menús.
+          Cada menú contiene: <strong>nombre</strong>, <strong>descripción</strong>,
+          <strong>precio</strong>, <strong>stock</strong> e <strong>imágenes</strong>.
+        </p>
+      </div>
+
+      <div class="api-table-wrapper">
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Método</th>
+              <th>Endpoint</th>
+              <th>Descripción</th>
+              <th>Cuerpo (JSON)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="method method--get">GET</span></td>
+              <td><code>/api/menus</code></td>
+              <td>Obtener todos los menús</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><span class="method method--get">GET</span></td>
+              <td><code>/api/menus/{id}</code></td>
+              <td>Obtener un menú por ID</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><span class="method method--post">POST</span></td>
+              <td><code>/api/menus</code></td>
+              <td>Crear un nuevo menú</td>
+              <td><code>{ nombre, descripcion, precio, stock, imagen }</code></td>
+            </tr>
+            <tr>
+              <td><span class="method method--put">PUT</span></td>
+              <td><code>/api/menus/{id}</code></td>
+              <td>Actualizar un menú</td>
+              <td><code>{ nombre, descripcion, precio, stock, imagen }</code></td>
+            </tr>
+            <tr>
+              <td><span class="method method--delete">DELETE</span></td>
+              <td><code>/api/menus/{id}</code></td>
+              <td>Eliminar un menú</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+        <script src="admin.js"></script>
+    </body>
+</html>

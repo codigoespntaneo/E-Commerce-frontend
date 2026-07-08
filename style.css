@@ -281,6 +281,53 @@ a {
   }
 }
 
+/* --- Category Tabs --- */
+.catalog__categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+
+.category-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 10px 18px;
+  border-radius: 100px;
+  border: 1px solid #c1c8c4;
+  background: #ffffff;
+  color: #414846;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.category-tab:hover {
+  border-color: #1a3c34;
+  color: #1a3c34;
+}
+
+.category-tab--active {
+  background: #1a3c34;
+  border-color: #1a3c34;
+  color: #ffffff;
+}
+
+.category-tab--active:hover {
+  background: #01261f;
+  border-color: #01261f;
+  color: #ffffff;
+}
+
+.category-tab__emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
 /* --- Catalog / Cards --- */
 .catalog {
   display: grid;

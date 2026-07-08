@@ -1,9 +1,21 @@
 // ---- Configuración de la API ----
+
 const API_BASE = 'http://localhost:8000';
+
+// ---- Categorías ----
+const CATEGORIES = [
+  { id: 'fideos-ramen',   emoji: '🍜', nombre: 'Fideos y ramen' },
+  { id: 'salsas',         emoji: '🥢', nombre: 'Salsas y condimentos' },
+  { id: 'arroz-cereales', emoji: '🍚', nombre: 'Arroz y cereales' },
+  { id: 'congelados',     emoji: '🥟', nombre: 'Congelados y preparados' },
+  { id: 'snacks-dulces',  emoji: '🍘', nombre: 'Snacks y dulces' },
+  { id: 'bebidas-tes',    emoji: '🍵', nombre: 'Bebidas y tés' },
+];
 
 // ---- Estado compartido ----
 let menus = [];
 let editingId = null;
+let selectedCategory = null;
 
 // ---- Adaptador ES ↔ EN (mapea campos del form en español al contrato del backend en inglés) ----
 const toBackend = (m) => ({
@@ -12,6 +24,7 @@ const toBackend = (m) => ({
   price:       m.precio,
   stock:       m.stock,
   img:         m.imagen,
+  category:    m.categoria || null,
 });
 
 const fromBackend = (m) => ({
@@ -21,6 +34,7 @@ const fromBackend = (m) => ({
   precio:      Number(m.price),
   stock:       m.stock,
   imagen:      m.img ?? '',
+  categoria:   m.category || null,
 });
 
 // ---- Cliente HTTP ----
@@ -45,14 +59,39 @@ const api = {
   remove: (id)         => apiRequest(`/menus/${id}`, { method: 'DELETE' }),
 };
 
+// ---- Render: Categorías ----
+function renderCategories() {
+  const container = document.getElementById('category-tabs');
+  if (!container) return;
+  container.innerHTML = `
+    <button class="category-tab ${selectedCategory === null ? 'category-tab--active' : ''}" data-category="">Todas</button>
+    ${CATEGORIES.map(c => `
+      <button class="category-tab ${selectedCategory === c.id ? 'category-tab--active' : ''}" data-category="${c.id}">
+        <span class="category-tab__emoji">${c.emoji}</span>
+        ${c.nombre}
+      </button>
+    `).join('')}
+  `;
+  container.addEventListener('click', (e) => {
+    const btn = e.target.closest('.category-tab');
+    if (!btn) return;
+    selectedCategory = btn.dataset.category || null;
+    renderCategories();
+    renderCatalog();
+  });
+}
+
 // ---- Render: Catálogo público ----
 function renderCatalog() {
   const container = document.getElementById('catalog-container');
-  if (menus.length === 0) {
-    container.innerHTML = '<p class="admin__empty" style="display:block">No hay menús disponibles.</p>';
+  const filtered = selectedCategory
+    ? menus.filter(m => m.categoria === selectedCategory)
+    : menus;
+  if (filtered.length === 0) {
+    container.innerHTML = '<p class="admin__empty" style="display:block">No hay menús en esta categoría.</p>';
     return;
   }
-  container.innerHTML = menus.map(m => `
+  container.innerHTML = filtered.map(m => `
     <article class="card">
       <div class="card__image"><span class="card__emoji">${m.imagen}</span></div>
       <div class="card__body">
@@ -68,202 +107,6 @@ function renderCatalog() {
     </article>
   `).join('');
 }
-
-// ---- Render: Admin table ----
-function renderAdminTable() {
-  const tbody = document.getElementById('admin-table-body');
-  const empty = document.getElementById('admin-empty');
-  if (menus.length === 0) {
-    tbody.innerHTML = '';
-    empty.style.display = 'block';
-    return;
-  }
-  empty.style.display = 'none';
-  tbody.innerHTML = menus.map(m => `
-    <tr>
-      <td class="admin__cell-img">${m.imagen}</td>
-      <td><strong>${m.nombre}</strong></td>
-      <td>$${Number(m.precio).toFixed(2)}</td>
-      <td>${m.stock}</td>
-      <td class="admin__cell-actions">
-        <button class="admin__btn admin__btn--edit" data-id="${m.id}">Editar</button>
-        <button class="admin__btn admin__btn--delete" data-id="${m.id}">Eliminar</button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-function syncUI() {
-  renderCatalog();
-  renderAdminTable();
-}
-
-// ---- Carga inicial desde la API ----
-async function loadMenus() {
-  try {
-    menus = await api.list();
-    syncUI();
-  } catch (err) {
-    console.error('No se pudieron cargar los menús:', err);
-    const container = document.getElementById('catalog-container');
-    container.innerHTML = `<p class="admin__empty" style="display:block">No se pudo conectar con la API (${API_BASE}). Revisa que el backend esté en ejecución.</p>`;
-  }
-}
-
-// ---- CRUD: wrappers async ----
-async function addMenu(data) {
-  const created = await api.create(data);
-  menus.push(created);
-  syncUI();
-}
-
-async function updateMenu(id, data) {
-  const updated = await api.update(id, data);
-  const idx = menus.findIndex(m => m.id === id);
-  if (idx !== -1) menus[idx] = updated;
-  syncUI();
-}
-
-async function deleteMenu(id) {
-  await api.remove(id);
-  menus = menus.filter(m => m.id !== id);
-  if (editingId === id) cancelEdit();
-  syncUI();
-}
-
-// ---- Emoji picker ----
-const EMOJI_CHOICES = [
-  // Platos principales
-  '🍣', '🍱', '🍜', '🍲', '🍛', '🍝', '🥟', '🥢',
-  // Arroz / fideos / sopas
-  '🍚', '🍢', '🥠', '🍙', '🍘',
-  // Postres y dulces
-  '🍡', '🍮', '🍰', '🍵', '🧋',
-  // Carnes y proteínas
-  '🍤', '🍗', '🥩', '🍖', '🥚',
-  // Verduras y frescos
-  '🥗', '🥬', '🌶️', '🥒', '🧄',
-  // Frutas
-  '🍊', '🍋', '🍓', '🍑', '🥝',
-];
-
-function renderEmojiGrid() {
-  const grid = document.getElementById('emoji-picker-grid');
-  if (!grid) return;
-  grid.innerHTML = EMOJI_CHOICES.map(e =>
-    `<button type="button" class="emoji-picker__btn" data-emoji="${e}" aria-label="Elegir ${e}">${e}</button>`
-  ).join('');
-}
-
-function setEmojiSelection(emoji) {
-  const value = (emoji || '').trim();
-  const input = document.getElementById('admin-image');
-  const preview = document.getElementById('emoji-picker-current');
-  const fallback = EMOJI_CHOICES[0];
-  const current = value || fallback;
-  input.value = current;
-  preview.textContent = current;
-  document.querySelectorAll('.emoji-picker__btn').forEach(btn => {
-    btn.classList.toggle('emoji-picker__btn--selected', btn.dataset.emoji === current);
-  });
-}
-
-function initEmojiPicker() {
-  renderEmojiGrid();
-  setEmojiSelection(document.getElementById('admin-image').value);
-
-  document.getElementById('emoji-picker-grid').addEventListener('click', (e) => {
-    const btn = e.target.closest('.emoji-picker__btn');
-    if (!btn) return;
-    setEmojiSelection(btn.dataset.emoji);
-  });
-
-  document.getElementById('admin-image').addEventListener('input', (e) => {
-    setEmojiSelection(e.target.value);
-  });
-}
-
-// ---- Admin form handlers ----
-const adminForm = document.getElementById('admin-form');
-const adminSubmit = document.getElementById('admin-submit');
-const adminCancel = document.getElementById('admin-cancel');
-const formTitle = document.getElementById('form-title');
-
-function getFormData() {
-  return {
-    nombre: document.getElementById('admin-name').value.trim(),
-    descripcion: document.getElementById('admin-desc').value.trim(),
-    precio: parseFloat(document.getElementById('admin-price').value),
-    stock: parseInt(document.getElementById('admin-stock').value, 10),
-    imagen: document.getElementById('admin-image').value.trim(),
-  };
-}
-
-function resetForm() {
-  adminForm.reset();
-  editingId = null;
-  adminSubmit.textContent = 'Añadir Menú';
-  adminCancel.style.display = 'none';
-  formTitle.textContent = 'Añadir Menú';
-  setEmojiSelection('');
-}
-
-function cancelEdit() {
-  resetForm();
-}
-
-function startEdit(id) {
-  const m = menus.find(item => item.id === id);
-  if (!m) return;
-  editingId = id;
-  document.getElementById('admin-name').value = m.nombre;
-  document.getElementById('admin-desc').value = m.descripcion;
-  document.getElementById('admin-price').value = m.precio;
-  document.getElementById('admin-stock').value = m.stock;
-  document.getElementById('admin-image').value = m.imagen;
-  setEmojiSelection(m.imagen);
-  adminSubmit.textContent = 'Guardar Cambios';
-  adminCancel.style.display = 'inline-flex';
-  formTitle.textContent = 'Editar Menú';
-  document.getElementById('admin').scrollIntoView({ behavior: 'smooth' });
-}
-
-adminCancel.addEventListener('click', cancelEdit);
-
-adminForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const data = getFormData();
-  if (!data.nombre || !data.descripcion || isNaN(data.precio) || isNaN(data.stock) || !data.imagen) return;
-  try {
-    if (editingId) {
-      await updateMenu(editingId, data);
-    } else {
-      await addMenu(data);
-    }
-    resetForm();
-  } catch (err) {
-    console.error('Error guardando el menú:', err);
-    alert('No se pudo guardar el menú. Revisa la consola para más detalles.');
-  }
-});
-
-// Delegación de eventos para botones Editar / Eliminar
-document.getElementById('admin-table-body').addEventListener('click', async (e) => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  const id = parseInt(btn.dataset.id, 10);
-  if (btn.classList.contains('admin__btn--edit')) startEdit(id);
-  if (btn.classList.contains('admin__btn--delete')) {
-    if (confirm('¿Eliminar este menú?')) {
-      try {
-        await deleteMenu(id);
-      } catch (err) {
-        console.error('Error eliminando el menú:', err);
-        alert('No se pudo eliminar el menú. Revisa la consola para más detalles.');
-      }
-    }
-  }
-});
 
 // ---- Feedback form validation ----
 const feedbackForm = document.getElementById('feedback-form');
@@ -301,6 +144,22 @@ feedbackForm.addEventListener('submit', (e) => {
   }
 });
 
-// ---- Inicializar ----
-initEmojiPicker();
-loadMenus();
+// ==========================================
+// ¡AÑADIDO NUEVO AQUÍ ABAJO! (Para que funcione el catálogo)
+// ==========================================
+async function loadCatalog() {
+  try {
+    menus = await api.list();
+    renderCategories();
+    renderCatalog();
+  } catch (err) {
+    console.error('No se pudieron cargar los menús:', err);
+    const container = document.getElementById('catalog-container');
+    if (container) {
+      container.innerHTML = `<p class="admin__empty" style="display:block">No se pudo conectar con la API (${API_BASE}).</p>`;
+    }
+  }
+}
+
+// Arranca la carga cuando se abre index.html
+document.addEventListener('DOMContentLoaded', loadCatalog);
