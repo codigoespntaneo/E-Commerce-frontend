@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FujiFood — Cocina Asiática</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../src/css/style.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="navbar__inner container">
+      <a href="index.html" class="navbar__logo">🏔️ FujiFood</a>
+      <nav class="navbar__links">
+        <a href="#admin">Admin</a>
+        <a href="#api">API</a>
+      </nav>
+      <button class="navbar__toggle" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+<!-- ADMIN -->
+    <section id="admin" class="admin section container">
+      <div class="section__header">
+        <span class="label-caps">Administración</span>
+        <h2 class="headline-md">Gestionar Menús</h2>
+      </div>
+
+      <div class="admin__layout">
+        <div class="admin__form-wrapper">
+          <h3 class="admin__form-title" id="form-title">Añadir Menú</h3>
+          <form class="admin__form" id="admin-form">
+            <div class="admin__group">
+              <label for="admin-name" class="admin__label">Nombre</label>
+              <input type="text" id="admin-name" class="admin__input" placeholder="Ej: Sushi Set Premium" required />
+            </div>
+            <div class="admin__group">
+              <label for="admin-desc" class="admin__label">Descripción</label>
+              <textarea id="admin-desc" class="admin__textarea" rows="2" placeholder="Descripción del plato..." required></textarea>
+            </div>
+            <div class="admin__row">
+              <div class="admin__group">
+                <label for="admin-price" class="admin__label">Precio ($)</label>
+                <input type="number" id="admin-price" class="admin__input" step="0.01" min="0" placeholder="28.50" required />
+              </div>
+              <div class="admin__group">
+                <label for="admin-stock" class="admin__label">Stock</label>
+                <input type="number" id="admin-stock" class="admin__input" min="0" placeholder="15" required />
+              </div>
+            </div>
+            <div class="admin__group">
+              <label for="admin-category" class="admin__label">Categoría</label>
+              <select id="admin-category" class="admin__input" required>
+                <option value="" disabled selected>Seleccionar categoría</option>
+              </select>
+            </div>
+            <div class="admin__group">
+              <label for="admin-image" class="admin__label">Imagen (URL)</label>
+              <input type="url" id="admin-image" class="admin__input" placeholder="https://ejemplo.com/imagen.jpg" required />
+              <div class="admin-image-preview" id="admin-image-preview">
+                <img src="" alt="Vista previa" id="admin-image-img" />
+              </div>
+            </div>
+            <div class="admin__actions">
+              <button type="submit" class="btn btn--primary" id="admin-submit">Añadir Menú</button>
+              <button type="button" class="btn btn--secondary" id="admin-cancel" style="display:none">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="admin__table-wrapper">
+          <table class="admin__table">
+            <thead>
+              <tr>
+                <th>Img</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table-body"></tbody>
+          </table>
+          <p class="admin__empty" id="admin-empty">No hay menús registrados.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- API REFERENCE -->
+    <section id="api" class="section container">
+      <div class="section__header">
+        <span class="label-caps">Desarrolladores</span>
+        <h2 class="headline-md">API REST — FujiFood</h2>
+        <p class="body-md api__intro">
+          Endpoints disponibles para operaciones CRUD sobre el catálogo de menús.
+          Cada menú contiene: <strong>nombre</strong>, <strong>descripción</strong>,
+          <strong>precio</strong>, <strong>stock</strong> e <strong>imagen</strong> (URL).
+        </p>
+      </div>
+
+      <div class="api-ref">
+        <div class="api-ref__endpoints">
+          <div class="api-table-wrapper">
+            <table class="api-table">
+              <thead>
+                <tr>
+                  <th>Método</th>
+                  <th>Endpoint</th>
+                  <th>Descripción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="method method--get">GET</span></td>
+                  <td><code>/api/menus</code></td>
+                  <td>Listar todos los menús</td>
+                </tr>
+                <tr>
+                  <td><span class="method method--get">GET</span></td>
+                  <td><code>/api/menus/{id}</code></td>
+                  <td>Obtener un menú por ID</td>
+                </tr>
+                <tr>
+                  <td><span class="method method--post">POST</span></td>
+                  <td><code>/api/menus</code></td>
+                  <td>Crear un nuevo menú</td>
+                </tr>
+                <tr>
+                  <td><span class="method method--put">PUT</span></td>
+                  <td><code>/api/menus/{id}</code></td>
+                  <td>Actualizar un menú</td>
+                </tr>
+                <tr>
+                  <td><span class="method method--delete">DELETE</span></td>
+                  <td><code>/api/menus/{id}</code></td>
+                  <td>Eliminar un menú</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="api-ref__model">
+            <h3 class="api-ref__subtitle">Modelo del menú</h3>
+            <pre class="api-ref__code">{
+  "id":          1,
+  "nombre":      "Sushi Set Premium",
+  "descripcion": "12 piezas de sushi variado",
+  "precio":      28.50,
+  "stock":       15,
+  "imagen":      "https://ejemplo.com/sushi.jpg",
+  "categoria":   "fideos-ramen"
+}</pre>
+          </div>
+        </div>
+
+        <div class="api-ref__examples">
+          <h3 class="api-ref__subtitle">Ejemplos de uso</h3>
+
+          <div class="api-example">
+            <div class="api-example__header">
+              <span class="method method--get">GET</span>
+              <span class="api-example__title">Obtener todos los menús</span>
+            </div>
+            <div class="api-example__tabs">
+              <button class="api-example__tab api-example__tab--active" data-target="curl-list">cURL</button>
+              <button class="api-example__tab" data-target="fetch-list">JavaScript</button>
+            </div>
+            <div class="api-example__body" id="curl-list">
+              <pre class="api-ref__code">curl -X GET http://localhost:8000/api/menus/</pre>
+            </div>
+            <div class="api-example__body" id="fetch-list" style="display:none">
+              <pre class="api-ref__code">fetch('http://localhost:8000/api/menus/')
+  .then(res => res.json())
+  .then(data => console.log(data));</pre>
+            </div>
+          </div>
+
+          <div class="api-example">
+            <div class="api-example__header">
+              <span class="method method--get">GET</span>
+              <span class="api-example__title">Obtener menú por ID</span>
+            </div>
+            <div class="api-example__tabs">
+              <button class="api-example__tab api-example__tab--active" data-target="curl-get">cURL</button>
+              <button class="api-example__tab" data-target="fetch-get">JavaScript</button>
+            </div>
+            <div class="api-example__body" id="curl-get">
+              <pre class="api-ref__code">curl -X GET http://localhost:8000/api/menus/1</pre>
+            </div>
+            <div class="api-example__body" id="fetch-get" style="display:none">
+              <pre class="api-ref__code">fetch('http://localhost:8000/api/menus/1')
+  .then(res => res.json())
+  .then(data => console.log(data));</pre>
+            </div>
+          </div>
+
+          <div class="api-example">
+            <div class="api-example__header">
+              <span class="method method--post">POST</span>
+              <span class="api-example__title">Crear un menú</span>
+            </div>
+            <div class="api-example__tabs">
+              <button class="api-example__tab api-example__tab--active" data-target="curl-create">cURL</button>
+              <button class="api-example__tab" data-target="fetch-create">JavaScript</button>
+            </div>
+            <div class="api-example__body" id="curl-create">
+              <pre class="api-ref__code">curl -X POST http://localhost:8000/api/menus/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Sushi Set Premium",
+    "description": "12 piezas de sushi variado",
+    "price": 28.50,
+    "stock": 15,
+    "img": "https://ejemplo.com/sushi.jpg",
+    "category": "fideos-ramen"
+  }'</pre>
+            </div>
+            <div class="api-example__body" id="fetch-create" style="display:none">
+              <pre class="api-ref__code">const nuevoMenu = {
+  name: "Sushi Set Premium",
+  description: "12 piezas de sushi variado",
+  price: 28.50,
+  stock: 15,
+  img: "https://ejemplo.com/sushi.jpg",
+  category: "fideos-ramen"
+};
+
+fetch('http://localhost:8000/api/menus/', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(nuevoMenu)
+})
+  .then(res => res.json())
+  .then(data => console.log(data));</pre>
+            </div>
+          </div>
+
+          <div class="api-example">
+            <div class="api-example__header">
+              <span class="method method--put">PUT</span>
+              <span class="api-example__title">Actualizar un menú</span>
+            </div>
+            <div class="api-example__tabs">
+              <button class="api-example__tab api-example__tab--active" data-target="curl-update">cURL</button>
+              <button class="api-example__tab" data-target="fetch-update">JavaScript</button>
+            </div>
+            <div class="api-example__body" id="curl-update">
+              <pre class="api-ref__code">curl -X PUT http://localhost:8000/api/menus/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Sushi Set Deluxe",
+    "description": "18 piezas de sushi variado",
+    "price": 38.00,
+    "stock": 10,
+    "img": "https://ejemplo.com/sushi-deluxe.jpg",
+    "category": "fideos-ramen"
+  }'</pre>
+            </div>
+            <div class="api-example__body" id="fetch-update" style="display:none">
+              <pre class="api-ref__code">const datosActualizados = {
+  name: "Sushi Set Deluxe",
+  description: "18 piezas de sushi variado",
+  price: 38.00,
+  stock: 10,
+  img: "https://ejemplo.com/sushi-deluxe.jpg",
+  category: "fideos-ramen"
+};
+
+fetch('http://localhost:8000/api/menus/1', {
+  method: 'PUT',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(datosActualizados)
+})
+  .then(res => res.json())
+  .then(data => console.log(data));</pre>
+            </div>
+          </div>
+
+          <div class="api-example">
+            <div class="api-example__header">
+              <span class="method method--delete">DELETE</span>
+              <span class="api-example__title">Eliminar un menú</span>
+            </div>
+            <div class="api-example__tabs">
+              <button class="api-example__tab api-example__tab--active" data-target="curl-delete">cURL</button>
+              <button class="api-example__tab" data-target="fetch-delete">JavaScript</button>
+            </div>
+            <div class="api-example__body" id="curl-delete">
+              <pre class="api-ref__code">curl -X DELETE http://localhost:8000/api/menus/1</pre>
+            </div>
+            <div class="api-example__body" id="fetch-delete" style="display:none">
+              <pre class="api-ref__code">fetch('http://localhost:8000/api/menus/1', {
+  method: 'DELETE'
+})
+  .then(res => {
+    if (res.status === 204) console.log('Eliminado correctamente');
+  });</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+        <script src="../src/js/helpers.js"></script>
+        <script src="../src/js/admin.js"></script>
+    </body>
+</html>

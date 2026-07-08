@@ -1,77 +1,28 @@
-// ---- Configuración de la API ----
-
-const API_BASE = 'http://localhost:8000';
-
-// ---- Categorías ----
-const CATEGORIES = [
-  { id: 'fideos-ramen',   emoji: '🍜', nombre: 'Fideos y ramen' },
-  { id: 'salsas',         emoji: '🥢', nombre: 'Salsas y condimentos' },
-  { id: 'arroz-cereales', emoji: '🍚', nombre: 'Arroz y cereales' },
-  { id: 'congelados',     emoji: '🥟', nombre: 'Congelados y preparados' },
-  { id: 'snacks-dulces',  emoji: '🍘', nombre: 'Snacks y dulces' },
-  { id: 'bebidas-tes',    emoji: '🍵', nombre: 'Bebidas y tés' },
-];
-
 // ---- Estado compartido ----
 let menus = [];
-let editingId = null;
 let selectedCategory = null;
-
-// ---- Adaptador ES ↔ EN (mapea campos del form en español al contrato del backend en inglés) ----
-const toBackend = (m) => ({
-  name:        m.nombre,
-  description: m.descripcion,
-  price:       m.precio,
-  stock:       m.stock,
-  img:         m.imagen,
-  category:    m.categoria || null,
-});
-
-const fromBackend = (m) => ({
-  id:          m.id,
-  nombre:      m.name,
-  descripcion: m.description,
-  precio:      Number(m.price),
-  stock:       m.stock,
-  imagen:      m.img ?? '',
-  categoria:   m.category || null,
-});
-
-// ---- Cliente HTTP ----
-async function apiRequest(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
-  if (!response.ok) {
-    const detail = await response.text().catch(() => '');
-    throw new Error(`Error ${response.status}: ${detail || response.statusText}`);
-  }
-  if (response.status === 204) return null;
-  return response.json();
-}
-
-const api = {
-  list:   ()           => apiRequest('/menus/').then(arr => arr.map(fromBackend)),
-  get:    (id)         => apiRequest(`/menus/${id}`).then(fromBackend),
-  create: (data)       => apiRequest('/menus/',      { method: 'POST',   body: JSON.stringify(toBackend(data)) }).then(fromBackend),
-  update: (id, data)   => apiRequest(`/menus/${id}`, { method: 'PUT',    body: JSON.stringify(toBackend(data)) }).then(fromBackend),
-  remove: (id)         => apiRequest(`/menus/${id}`, { method: 'DELETE' }),
-};
 
 // ---- Render: Categorías ----
 function renderCategories() {
   const container = document.getElementById('category-tabs');
   if (!container) return;
   container.innerHTML = `
-    <button class="category-tab ${selectedCategory === null ? 'category-tab--active' : ''}" data-category="">Todas</button>
+    <button class="category-tab category-tab--all ${selectedCategory === null ? 'category-tab--active' : ''}" data-category="">
+      <span class="category-tab__icon">⊞</span>
+      <span class="category-tab__label">Todas</span>
+    </button>
     ${CATEGORIES.map(c => `
       <button class="category-tab ${selectedCategory === c.id ? 'category-tab--active' : ''}" data-category="${c.id}">
-        <span class="category-tab__emoji">${c.emoji}</span>
-        ${c.nombre}
+        <span class="category-tab__icon">${c.emoji}</span>
+        <span class="category-tab__label">${c.nombre}</span>
       </button>
     `).join('')}
   `;
+}
+
+function initCategoryTabs() {
+  const container = document.getElementById('category-tabs');
+  if (!container) return;
   container.addEventListener('click', (e) => {
     const btn = e.target.closest('.category-tab');
     if (!btn) return;
@@ -93,7 +44,7 @@ function renderCatalog() {
   }
   container.innerHTML = filtered.map(m => `
     <article class="card">
-      <div class="card__image"><span class="card__emoji">${m.imagen}</span></div>
+      <div class="card__image"><img class="card__img" src="${m.imagen}" alt="${m.nombre}" loading="lazy" /></div>
       <div class="card__body">
         <h3 class="card__title">${m.nombre}</h3>
         <p class="card__desc body-md">${m.descripcion}</p>
@@ -144,12 +95,11 @@ feedbackForm.addEventListener('submit', (e) => {
   }
 });
 
-// ==========================================
-// ¡AÑADIDO NUEVO AQUÍ ABAJO! (Para que funcione el catálogo)
-// ==========================================
+// ---- Carga del catálogo ----
 async function loadCatalog() {
   try {
     menus = await api.list();
+    initCategoryTabs();
     renderCategories();
     renderCatalog();
   } catch (err) {
@@ -161,5 +111,4 @@ async function loadCatalog() {
   }
 }
 
-// Arranca la carga cuando se abre index.html
 document.addEventListener('DOMContentLoaded', loadCatalog);

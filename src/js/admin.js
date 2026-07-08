@@ -1,60 +1,6 @@
-const API_BASE = 'http://localhost:8000';
-
-// ---- Categorías (mismas que en script.js) ----
-const CATEGORIES = [
-  { id: 'fideos-ramen',   emoji: '🍜', nombre: 'Fideos y ramen' },
-  { id: 'salsas',         emoji: '🥢', nombre: 'Salsas y condimentos' },
-  { id: 'arroz-cereales', emoji: '🍚', nombre: 'Arroz y cereales' },
-  { id: 'congelados',     emoji: '🥟', nombre: 'Congelados y preparados' },
-  { id: 'snacks-dulces',  emoji: '🍘', nombre: 'Snacks y dulces' },
-  { id: 'bebidas-tes',    emoji: '🍵', nombre: 'Bebidas y tés' },
-];
-
-// ---- Estado compartido necesario para el Admin ----
+// ---- Estado compartido ----
 let menus = [];
 let editingId = null;
-
-// ---- Adaptador ES ↔ EN (Copiado de tu script original para que traduzca en el Admin) ----
-const toBackend = (m) => ({
-  name:        m.nombre,
-  description: m.descripcion,
-  price:       m.precio,
-  stock:       m.stock,
-  img:         m.imagen,
-  category:    m.categoria || null,
-});
-
-const fromBackend = (m) => ({
-  id:          m.id,
-  nombre:      m.name,
-  descripcion: m.description,
-  precio:      Number(m.price),
-  stock:       m.stock,
-  imagen:      m.img ?? '',
-  categoria:   m.category || null,
-});
-
-// ---- Cliente HTTP (Copiado de tu script original para que el Admin pueda conectarse) ----
-async function apiRequest(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
-  if (!response.ok) {
-    const detail = await response.text().catch(() => '');
-    throw new Error(`Error ${response.status}: ${detail || response.statusText}`);
-  }
-  if (response.status === 204) return null;
-  return response.json();
-}
-
-const api = {
-  list:   ()           => apiRequest('/menus/').then(arr => arr.map(fromBackend)),
-  get:    (id)         => apiRequest(`/menus/${id}`).then(fromBackend),
-  create: (data)       => apiRequest('/menus/',      { method: 'POST',   body: JSON.stringify(toBackend(data)) }).then(fromBackend),
-  update: (id, data)   => apiRequest(`/menus/${id}`, { method: 'PUT',    body: JSON.stringify(toBackend(data)) }).then(fromBackend),
-  remove: (id)         => apiRequest(`/menus/${id}`, { method: 'DELETE' }),
-};
 
 // ---- Render: Admin table ----
 function renderAdminTable() {
@@ -70,7 +16,7 @@ function renderAdminTable() {
     const cat = CATEGORIES.find(c => c.id === m.categoria);
     return `
     <tr>
-      <td class="admin__cell-img">${m.imagen}</td>
+      <td class="admin__cell-img"><img class="admin__table-img" src="${m.imagen}" alt="${m.nombre}" /></td>
       <td><strong>${m.nombre}</strong></td>
       <td>${cat ? cat.nombre : '—'}</td>
       <td>$${Number(m.precio).toFixed(2)}</td>
@@ -84,7 +30,6 @@ function renderAdminTable() {
 }
 
 function syncUI() {
-  // Se quitó renderCatalog(); de aquí porque en admin.html ya no hay catálogo
   renderAdminTable();
 }
 
@@ -123,50 +68,25 @@ async function deleteMenu(id) {
   syncUI();
 }
 
-// ---- Emoji picker ----
-const EMOJI_CHOICES = [
-  '🍣', '🍱', '🍜', '🍲', '🍛', '🍝', '🥟', '🥢',
-  '🍚', '🍢', '🥠', '🍙', '🍘',
-  '🍡', '🍮', '🍰', '🍵', '🧋',
-  '🍤', '🍗', '🥩', '🍖', '🥚',
-  '🥗', '🥬', '🌶️', '🥒', '🧄',
-  '🍊', '🍋', '🍓', '🍑', '🥝',
-];
-
-function renderEmojiGrid() {
-  const grid = document.getElementById('emoji-picker-grid');
-  if (!grid) return;
-  grid.innerHTML = EMOJI_CHOICES.map(e =>
-    `<button type="button" class="emoji-picker__btn" data-emoji="${e}" aria-label="Elegir ${e}">${e}</button>`
-  ).join('');
-}
-
-function setEmojiSelection(emoji) {
-  const value = (emoji || '').trim();
+// ---- Vista previa de imagen ----
+function initImagePreview() {
   const input = document.getElementById('admin-image');
-  const preview = document.getElementById('emoji-picker-current');
-  const fallback = EMOJI_CHOICES[0];
-  const current = value || fallback;
-  input.value = current;
-  preview.textContent = current;
-  document.querySelectorAll('.emoji-picker__btn').forEach(btn => {
-    btn.classList.toggle('emoji-picker__btn--selected', btn.dataset.emoji === current);
-  });
-}
+  const img = document.getElementById('admin-image-img');
+  const preview = document.getElementById('admin-image-preview');
 
-function initEmojiPicker() {
-  renderEmojiGrid();
-  setEmojiSelection(document.getElementById('admin-image').value);
+  function updatePreview() {
+    const url = input.value.trim();
+    if (url) {
+      img.src = url;
+      preview.style.display = 'block';
+    } else {
+      img.src = '';
+      preview.style.display = 'none';
+    }
+  }
 
-  document.getElementById('emoji-picker-grid').addEventListener('click', (e) => {
-    const btn = e.target.closest('.emoji-picker__btn');
-    if (!btn) return;
-    setEmojiSelection(btn.dataset.emoji);
-  });
-
-  document.getElementById('admin-image').addEventListener('input', (e) => {
-    setEmojiSelection(e.target.value);
-  });
+  input.addEventListener('input', updatePreview);
+  updatePreview();
 }
 
 // ---- Admin form handlers ----
@@ -199,7 +119,7 @@ function resetForm() {
   adminSubmit.textContent = 'Añadir Menú';
   adminCancel.style.display = 'none';
   formTitle.textContent = 'Añadir Menú';
-  setEmojiSelection('');
+  document.getElementById('admin-image-preview').style.display = 'none';
 }
 
 function cancelEdit() {
@@ -215,8 +135,9 @@ function startEdit(id) {
   document.getElementById('admin-price').value = m.precio;
   document.getElementById('admin-stock').value = m.stock;
   document.getElementById('admin-image').value = m.imagen;
+  document.getElementById('admin-image-img').src = m.imagen;
+  document.getElementById('admin-image-preview').style.display = 'block';
   document.getElementById('admin-category').value = m.categoria || '';
-  setEmojiSelection(m.imagen);
   adminSubmit.textContent = 'Guardar Cambios';
   adminCancel.style.display = 'inline-flex';
   formTitle.textContent = 'Editar Menú';
@@ -265,7 +186,24 @@ if (tableBody) {
   });
 }
 
+// ---- API Reference: tabs ----
+function initApiTabs() {
+  document.querySelectorAll('.api-example__tabs').forEach(tabGroup => {
+    tabGroup.addEventListener('click', (e) => {
+      const tab = e.target.closest('.api-example__tab');
+      if (!tab) return;
+      const target = tab.dataset.target;
+      const parent = tab.closest('.api-example');
+      parent.querySelectorAll('.api-example__tab').forEach(t => t.classList.remove('api-example__tab--active'));
+      tab.classList.add('api-example__tab--active');
+      parent.querySelectorAll('.api-example__body').forEach(body => body.style.display = 'none');
+      document.getElementById(target).style.display = 'block';
+    });
+  });
+}
+
 // ---- Inicializar ----
 populateCategorySelect();
-initEmojiPicker();
+initImagePreview();
+initApiTabs();
 loadMenus();
