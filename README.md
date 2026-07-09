@@ -29,8 +29,6 @@ source venv/bin/activate
 Y por ultimo las dependencias:
 pip install "fastapi[standard]" pytest validators sqlmodel httpx
 
-### Variable de entorno
-
 ### comando para ejecutar Pytest 
 pytest -v 
 
