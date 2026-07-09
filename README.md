@@ -1,4 +1,4 @@
-### E-Commerce-frontend FujiFoods
+### 🏔️E-Commerce-frontend FujiFoods
 
 Una Plataforma desarrollada para una API REST completa utilizando FastAPI y una aplicación web desarrollada con HTML, CSS y JavaScript que permita documentar, visualizar y consumir la información gestionada por la API. Con la finalidad aplicar conocimientos de desarrollo backend y frontend, así como comprender el funcionamiento de las arquitecturas cliente-servidor mediante la implementación de operaciones CRUD completas.
 
