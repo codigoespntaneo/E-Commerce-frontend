@@ -156,6 +156,76 @@ pytest -v
 
 https://stitch.withgoogle.com/projects/15915482453594483079
 
+### Diagrama de Arquitectura Hexagonal de la API
+
+```
+                           ┌───────────────────────┐
+                           │       Usuario         │
+                           └───────────┬───────────┘
+                                       │
+                                       ▼
+                    ┌────────────────────────────────┐
+                    │            Frontend            │
+                    │ HTML5 • CSS3 • JavaScript      │
+                    │ Consumo de API con Axios       │
+                    └───────────────┬────────────────┘
+                                    │
+                               HTTP Requests
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             Adaptadores de Entrada                          │
+│                                                                             │
+│                    FastAPI (Controllers / Endpoints REST)                   │
+└───────────────────────────────┬─────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             Capa de Aplicación                              │
+│                                                                             │
+│                            Casos de Uso (Use Cases)                         │
+│                                                                             │
+│  • Crear Producto                                                           │
+│  • Obtener Productos                                                        │
+│  • Actualizar Producto                                                      │
+│  • Eliminar Producto                                                        │
+└───────────────────────────────┬─────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              Dominio (Core)                                 │
+│                                                                             │
+│  Entidad: Producto                                                          │
+│  Reglas de negocio                                                          │
+│  Interfaces (Puertos)                                                       │
+└───────────────────────────────┬─────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             Adaptadores de Salida                           │
+│                                                                             │
+│                   Repositorio (SQLModel / SQLite)                           │
+└───────────────────────────────┬─────────────────────────────────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────────┐
+                       │    Base de Datos    │
+                       │       SQLite        │
+                       └─────────────────────┘
+```
+
+## Flujo de funcionamiento
+
+1. El usuario interactúa con el frontend.
+2. El frontend envía solicitudes HTTP mediante Axios.
+3. FastAPI recibe la petición a través de los controladores.
+4. El controlador delega la operación al caso de uso correspondiente.
+5. El caso de uso aplica la lógica de negocio utilizando las entidades del dominio.
+6. Si es necesario acceder a los datos, utiliza un puerto (interfaz) que es implementado por el repositorio.
+7. El repositorio consulta o modifica la base de datos SQLite.
+8. La respuesta vuelve por el mismo flujo hasta mostrarse en el frontend.
+
+
 
 
 
